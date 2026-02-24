@@ -39,12 +39,9 @@ def create_appointment(payload: AppointmentCreate):
         raise HTTPException(status_code=400, detail="end must be after start")
 
     # conflict detection against existing appointments
-    for appt in APPOINTMENTS:
-        if overlaps(payload.start, payload.end, appt.start, appt.end):
-            raise HTTPException(
-                status_code=409,
-                detail=f"conflict: overlaps appointment {appt.id}"
-            )
+    #for appt in APPOINTMENTS:
+        #if overlaps(payload.start, payload.end, appt.start, appt.end):
+            #raise HTTPException(status_code=409, detail=f"conflict: overlaps appointment {appt.id}")
 
     new_appt = Appointment(id=str(uuid4()), **payload.model_dump())
     APPOINTMENTS.append(new_appt)
