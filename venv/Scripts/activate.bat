@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\kylea\Downloads\appointment-booking-ai-testing\venv
+set VIRTUAL_ENV=C:\Users\mrakh\OneDrive\Documents\GitHub\appointment-booking-ai-testing\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

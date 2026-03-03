@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\kylea\Downloads\appointment-booking-ai-testing\venv"
+VIRTUAL_ENV="C:\Users\mrakh\OneDrive\Documents\GitHub\appointment-booking-ai-testing\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
