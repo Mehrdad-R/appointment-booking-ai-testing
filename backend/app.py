@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List
@@ -6,6 +7,13 @@ from uuid import uuid4
 import sqlite3
 
 app = FastAPI(title="Appointment Booking API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 DB_FILE = "appointments.db"
 
 # Data models
@@ -21,7 +29,7 @@ class AppointmentReschedule(BaseModel):
 class Appointment(AppointmentCreate):
     id: str
     status: str
-    
+
 
 def get_connection():
     conn = sqlite3.connect(DB_FILE)
@@ -40,6 +48,11 @@ def init_db():
 # Helpers
 def overlaps(start1: datetime, end1: datetime, start2: datetime, end2: datetime) -> bool:
     """Return True if two time ranges overlap."""
+    start1 = start1.replace(tzinfo=None)
+    end1 = end1.replace(tzinfo=None)
+    start2 = start2.replace(tzinfo=None)
+    end2 = end2.replace(tzinfo=None)
+
     return start1 < end2 and start2 < end1
 
 @app.on_event("startup")
@@ -102,7 +115,7 @@ def create_appointment(payload: AppointmentCreate):
 
         if overlaps(payload.start, payload.end, appt_start, appt_end):
             conn.close()
-            raise HTTPException(status_code=409, detail=f"conflict: overlaps appointment {row['id']}")
+            raise HTTPException(status_code=409, detail=f"conflict: appointment time overlaps an existing appointment")
 
     # Create a new appointment object with a generated UUID with an initial status of "scheduled"
     new_appt = Appointment(id=str(uuid4()), status="scheduled", **payload.model_dump())
@@ -196,7 +209,7 @@ def reschedule_appointment(appointment_id: str, payload: AppointmentReschedule):
 
         if overlaps(payload.start, payload.end, other_start, other_end):
             conn.close()
-            raise HTTPException(status_code=409, detail=f"conflict: overlaps appointment {other['id']}")
+            raise HTTPException(status_code=409, detail=f"conflict: appointment time overlaps an existing appointment")
 
     # Update the appointment in the database
     cursor.execute(
