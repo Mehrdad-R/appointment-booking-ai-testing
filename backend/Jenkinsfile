@@ -19,15 +19,22 @@ pipeline {
             }
         }
 
-        stage('Run Backend Tests') {
+        stage('Run Smoke Tests') {
             steps {
-                bat 'venv\\Scripts\\python -m pytest backend/tests --junitxml=report.xml'
+                bat 'venv\\Scripts\\python -m pytest -m smoke backend/tests --junitxml=smoke-report.xml'
+            }
+        }
+
+        stage('Run Regression Tests') {
+            steps {
+                bat 'venv\\Scripts\\python -m pytest -m regression backend/tests --junitxml=regression-report.xml'
             }
         }
 
         stage('Publish Test Results') {
             steps {
-                junit 'report.xml'
+                junit 'smoke-report.xml'
+                junit 'regression-report.xml'
             }
         }
     }
