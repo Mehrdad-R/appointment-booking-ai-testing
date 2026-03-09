@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/Mehrdad-R/appointment-booking-ai-testing.git'
+            }
+        }
+
+        stage('Setup Python Environment') {
+            steps {
+                bat 'python -m venv venv'
+                bat 'venv\\Scripts\\pip install -r backend\\requirements.txt'
+            }
+        }
+
+        stage('Run Backend Tests') {
+            steps {
+                bat 'venv\\Scripts\\python -m pytest backend/tests --junitxml=report.xml'
+            }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                junit 'report.xml'
+            }
+        }
+    }
+}
