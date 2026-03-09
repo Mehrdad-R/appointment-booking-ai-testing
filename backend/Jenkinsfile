@@ -2,13 +2,6 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/Mehrdad-R/appointment-booking-ai-testing.git'
-            }
-        }
-
         stage('Setup Python Environment') {
             steps {
                 bat 'python -m venv venv'
