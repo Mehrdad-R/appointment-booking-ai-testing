@@ -3,6 +3,7 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 const form = document.getElementById("appointment-form");
 const messageBox = document.getElementById("message-box");
 const appointmentsList = document.getElementById("appointments-list");
+const deleteAllBtn = document.getElementById("delete-all-btn");
 
 // Track which appointment is currently being edited for rescheduling
 let activeRescheduleId = null;
@@ -159,6 +160,31 @@ async function submitReschedule(appointmentId) {
     }
 }
 
+// Delete all appointments from the backend
+async function deleteAllAppointments() {
+    const confirmed = confirm("Are you sure you want to delete all appointments?");
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/test/reset`, {
+            method: "DELETE"
+        });
+
+        if (response.status === 204) {
+            messageBox.textContent = "All appointments were deleted successfully.";
+            messageBox.style.color = "green";
+            activeRescheduleId = null;
+            loadAppointments();
+        } else {
+            messageBox.textContent = "Error: Could not delete appointments.";
+            messageBox.style.color = "red";
+        }
+    } catch (error) {
+        messageBox.textContent = "Error: Could not connect to backend.";
+        messageBox.style.color = "red";
+    }
+}
+
 // Handle form submission
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -199,5 +225,6 @@ form.addEventListener("submit", async (event) => {
     }
 });
 
+deleteAllBtn.addEventListener("click", deleteAllAppointments);
 // Load appointments when the page first opens
 loadAppointments();
