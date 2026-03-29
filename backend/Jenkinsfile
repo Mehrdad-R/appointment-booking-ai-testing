@@ -19,22 +19,35 @@ pipeline {
             }
         }
 
-        stage('Run Smoke Tests') {
+        stage('Generate Test Plan') {
             steps {
-                bat 'venv\\Scripts\\python -m pytest -m smoke backend/tests --junitxml=smoke-report.xml'
+                bat '''
+                    venv\\Scripts\\python -c "import subprocess, json; files=subprocess.check_output(['git','show','--pretty=','--name-only','HEAD'], text=True).splitlines(); files=[f for f in files if f.strip()]; open(r'backend\\agent\\changed_files.json','w',encoding='utf-8').write(json.dumps(files, indent=2))"
+                    echo Changed files:
+                    type backend\\agent\\changed_files.json
+
+                    venv\\Scripts\\python backend\\agent\\generate_test_plan.py
+
+                    echo Generated test plan:
+                    type backend\\agent\\test_plan.json
+                '''
             }
         }
 
-        stage('Run Regression Tests') {
+        stage('Execute Agent Test Plan') {
             steps {
-                bat 'venv\\Scripts\\python -m pytest -m regression backend/tests --junitxml=regression-report.xml'
+                bat '''
+                    venv\\Scripts\\python -c "import json; plan=json.load(open(r'backend\\agent\\test_plan.json', encoding='utf-8')); print(' or '.join(plan['selected_groups']))" > marker_expression.txt
+                    set /p MARKER=<marker_expression.txt
+                    echo Running pytest with marker expression: %MARKER%
+                    venv\\Scripts\\python -m pytest -m "%MARKER%" backend/tests --junitxml=agent-report.xml
+                '''
             }
         }
 
         stage('Publish Test Results') {
             steps {
-                junit 'smoke-report.xml'
-                junit 'regression-report.xml'
+                junit allowEmptyResults: true, testResults: 'agent-report.xml'
             }
         }
     }

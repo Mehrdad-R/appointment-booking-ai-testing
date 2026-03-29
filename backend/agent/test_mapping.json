@@ -1,0 +1,58 @@
+{
+  "backend/app.py": {
+    "risk": "high",
+    "groups": ["smoke", "regression"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_overlapping_appointment_rejected",
+      "test_invalid_time_range_rejected",
+      "test_cancel_appointment_success",
+      "test_reschedule_conflict_rejected"
+    ],
+    "reason": "Core backend scheduling and validation logic changed."
+  },
+  "backend/tests/test_appointments.py": {
+    "risk": "medium",
+    "groups": ["smoke", "regression"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_list_appointments_returns_items"
+    ],
+    "reason": "Regression test definitions changed."
+  },
+  "frontend/app.js": {
+    "risk": "low",
+    "groups": ["smoke"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_list_appointments_returns_items"
+    ],
+    "reason": "Frontend behavior changed; backend smoke validation is sufficient."
+  },
+  "frontend/index.html": {
+    "risk": "low",
+    "groups": ["smoke"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_list_appointments_returns_items"
+    ],
+    "reason": "Frontend structure changed; basic backend validation is sufficient."
+  },
+  "frontend/styles.css": {
+    "risk": "low",
+    "groups": ["smoke"],
+    "priority_tests": [
+      "test_create_appointment_success"
+    ],
+    "reason": "Styling-only change; minimal backend validation is sufficient."
+  },
+  "backend/Jenkinsfile": {
+    "risk": "medium",
+    "groups": ["smoke"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_list_appointments_returns_items"
+    ],
+    "reason": "CI pipeline configuration changed."
+  }
+}
