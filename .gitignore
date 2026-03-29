@@ -1,0 +1,27 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python cache / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test/cache artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local database files
+*.db
+*.sqlite3
+
+# Generated agent files
+backend/agent/changed_files.json
+backend/agent/test_plan.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
