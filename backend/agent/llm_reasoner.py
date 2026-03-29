@@ -6,7 +6,8 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-HISTORY_FILE = BASE_DIR / "history_summary.json"
+HISTORY_SEED_FILE = BASE_DIR / "history_summary.json"
+HISTORY_RUNTIME_FILE = BASE_DIR / "history_runtime.json"
 
 
 def strip_code_fences(text: str) -> str:
@@ -21,11 +22,64 @@ def strip_code_fences(text: str) -> str:
     return text
 
 
-def load_history_summary():
-    if not HISTORY_FILE.exists():
+def load_json_if_exists(path: Path):
+    if not path.exists():
         return {}
-    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def deduplicate_dict_list(items, key_field):
+    seen = set()
+    result = []
+
+    for item in items:
+        key = item.get(key_field)
+        if key not in seen:
+            seen.add(key)
+            result.append(item)
+
+    return result
+
+
+def merge_history_sources(seed, runtime):
+    combined_recent_failures = deduplicate_dict_list(
+        runtime.get("recent_failures", []) + seed.get("recent_failures", []),
+        "test_name"
+    )
+
+    combined_slow_tests = deduplicate_dict_list(
+        runtime.get("slow_tests", []) + seed.get("slow_tests", []),
+        "test_name"
+    )
+
+    combined_high_risk_modules = []
+    for module in runtime.get("high_risk_modules", []) + seed.get("high_risk_modules", []):
+        if module not in combined_high_risk_modules:
+            combined_high_risk_modules.append(module)
+
+    combined_failure_counts = {}
+    for source in [seed.get("failure_counts", {}), runtime.get("failure_counts", {})]:
+        for test_name, count in source.items():
+            combined_failure_counts[test_name] = combined_failure_counts.get(test_name, 0) + count
+
+    combined_avg_runtime = {}
+    combined_avg_runtime.update(seed.get("avg_runtime_seconds", {}))
+    combined_avg_runtime.update(runtime.get("avg_runtime_seconds", {}))
+
+    return {
+        "recent_failures": combined_recent_failures[:10],
+        "slow_tests": combined_slow_tests[:10],
+        "high_risk_modules": combined_high_risk_modules,
+        "failure_counts": combined_failure_counts,
+        "avg_runtime_seconds": combined_avg_runtime
+    }
+
+
+def load_history_summary():
+    seed = load_json_if_exists(HISTORY_SEED_FILE)
+    runtime = load_json_if_exists(HISTORY_RUNTIME_FILE)
+    return merge_history_sources(seed, runtime)
 
 
 def build_llm_prompt(changed_files, mapping, history_summary):

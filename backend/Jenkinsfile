@@ -53,9 +53,19 @@ pipeline {
             }
         }
 
+        stage('Update Runtime History') {
+            steps {
+                bat '''
+                    venv\\Scripts\\python backend\\agent\\update_history_summary.py
+                    echo Updated runtime history:
+                    type backend\\agent\\history_runtime.json
+                '''
+            }
+        }
+
         stage('Archive Agent Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,agent-report.xml', fingerprint: true
+                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,backend/agent/history_runtime.json,agent-report.xml', fingerprint: true
             }
         }
     }

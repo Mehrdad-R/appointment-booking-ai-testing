@@ -20,8 +20,14 @@ htmlcov/
 # Generated agent files
 backend/agent/changed_files.json
 backend/agent/test_plan.json
+backend/agent/history_runtime.json
 
 # OS/editor noise
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Generated XML reports
+agent-report.xml
+smoke-report.xml
+regression-report.xml
