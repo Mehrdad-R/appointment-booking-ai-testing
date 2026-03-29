@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 
 from llm_reasoner import call_gemini_for_test_plan
+from tools.context_tools import load_changed_files, load_mapping
 
 BASE_DIR = Path(__file__).resolve().parent
 MAPPING_FILE = BASE_DIR / "test_mapping.json"
@@ -134,8 +135,8 @@ def normalize_llm_plan(llm_plan, changed_files):
 
 
 def main():
-    mapping = load_json_file(MAPPING_FILE)
-    changed_files = load_json_file(INPUT_FILE)
+    mapping = load_mapping(MAPPING_FILE)
+    changed_files = load_changed_files(INPUT_FILE)
 
     use_llm = bool(os.getenv("GEMINI_API_KEY")) and bool(os.getenv("GEMINI_MODEL"))
 

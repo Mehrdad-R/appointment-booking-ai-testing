@@ -36,6 +36,16 @@ pipeline {
             }
         }
 
+        stage('Write Agent Decision Summary') {
+            steps {
+                bat '''
+                    venv\\Scripts\\python backend\\agent\\write_decision_summary.py
+                    echo Agent decision summary:
+                    type backend\\agent\\agent_decision_summary.md
+                '''
+            }
+        }
+
         stage('Execute AI Test Plan') {
             steps {
                 bat '''
@@ -65,7 +75,7 @@ pipeline {
 
         stage('Archive Agent Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,backend/agent/history_runtime.json,agent-report.xml', fingerprint: true
+                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,backend/agent/history_runtime.json,backend/agent/agent_decision_summary.md,agent-report.xml', fingerprint: true
             }
         }
     }

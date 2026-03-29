@@ -21,6 +21,7 @@ htmlcov/
 backend/agent/changed_files.json
 backend/agent/test_plan.json
 backend/agent/history_runtime.json
+backend/agent/agent_decision_summary.md
 
 # OS/editor noise
 .DS_Store
