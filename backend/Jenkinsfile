@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         PYTHON_EXE = 'C:\\Users\\mrakh\\AppData\\Local\\Programs\\Python\\Python310\\python.exe'
+        GEMINI_API_KEY = credentials('gemini-api-key')
+        GEMINI_MODEL = 'gemini-2.5-flash-lite'
     }
 
     stages {
@@ -19,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Generate Test Plan') {
+        stage('Generate AI Test Plan') {
             steps {
                 bat '''
                     venv\\Scripts\\python -c "import subprocess, json; files=subprocess.check_output(['git','show','--pretty=','--name-only','HEAD'], text=True).splitlines(); files=[f for f in files if f.strip()]; open(r'backend\\agent\\changed_files.json','w',encoding='utf-8').write(json.dumps(files, indent=2))"
@@ -28,13 +30,13 @@ pipeline {
 
                     venv\\Scripts\\python backend\\agent\\generate_test_plan.py
 
-                    echo Generated test plan:
+                    echo Generated AI test plan:
                     type backend\\agent\\test_plan.json
                 '''
             }
         }
 
-        stage('Execute Agent Test Plan') {
+        stage('Execute AI Test Plan') {
             steps {
                 bat '''
                     venv\\Scripts\\python -c "import json; plan=json.load(open(r'backend\\agent\\test_plan.json', encoding='utf-8')); print(' or '.join(plan['selected_groups']))" > marker_expression.txt
@@ -48,6 +50,12 @@ pipeline {
         stage('Publish Test Results') {
             steps {
                 junit allowEmptyResults: true, testResults: 'agent-report.xml'
+            }
+        }
+
+        stage('Archive Agent Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,agent-report.xml', fingerprint: true
             }
         }
     }

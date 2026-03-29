@@ -54,5 +54,25 @@
       "test_list_appointments_returns_items"
     ],
     "reason": "CI pipeline configuration changed."
+  },
+  "backend/agent/generate_test_plan.py": {
+    "risk": "high",
+    "groups": ["smoke", "regression"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_overlapping_appointment_rejected",
+      "test_invalid_time_range_rejected"
+    ],
+    "reason": "Agent decision logic changed; pipeline behavior must be revalidated."
+  },
+  "backend/agent/test_mapping.json": {
+    "risk": "high",
+    "groups": ["smoke", "regression"],
+    "priority_tests": [
+      "test_create_appointment_success",
+      "test_overlapping_appointment_rejected",
+      "test_invalid_time_range_rejected"
+    ],
+    "reason": "Agent test-selection rules changed; regression validation is required."
   }
 }
