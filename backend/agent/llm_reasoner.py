@@ -142,3 +142,4 @@ def call_gemini_for_test_plan(changed_files, mapping):
         return json.loads(cleaned_text)
     except json.JSONDecodeError:
         raise RuntimeError(f"Gemini returned non-JSON output:\n{cleaned_text}")
+    
