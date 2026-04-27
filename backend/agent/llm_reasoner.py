@@ -24,9 +24,12 @@ def strip_code_fences(text: str) -> str:
 
 
 def load_history_summary():
-    seed = load_optional_json(HISTORY_SEED_FILE)
     runtime = load_runtime_history_from_db()
-    return merge_history_sources(seed, runtime)
+    if runtime:
+        return runtime
+
+    seed = load_optional_json(HISTORY_SEED_FILE)
+    return seed
 
 
 def build_llm_prompt(changed_files, mapping, history_summary):
