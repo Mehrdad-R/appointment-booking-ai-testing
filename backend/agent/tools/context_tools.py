@@ -156,7 +156,7 @@ def load_runtime_history_from_db():
             for group in groups:
                 selected_group_frequency[group] = selected_group_frequency.get(group, 0) + 1
 
-        return {
+        debug_payload = {
             "recent_failures": [
                 {
                     "test_name": row["test_name"],
@@ -179,6 +179,11 @@ def load_runtime_history_from_db():
             },
             "selected_group_frequency": selected_group_frequency
         }
+
+        print("DEBUG: Retrieved runtime history from SQLite:")
+        print(json.dumps(debug_payload, indent=2))
+
+        return debug_payload
 
     except sqlite3.OperationalError:
         return {}
