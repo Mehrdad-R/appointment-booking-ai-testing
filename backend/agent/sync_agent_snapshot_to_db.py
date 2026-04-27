@@ -2,12 +2,13 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+import os
 from uuid import uuid4
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = PROJECT_ROOT / "backend" / "agent"
-DB_FILE = PROJECT_ROOT / "appointments.db"
+DB_FILE = Path(os.getenv("APP_DB_PATH", str(PROJECT_ROOT / "appointments.db")))
 
 PLAN_FILE = AGENT_DIR / "test_plan.json"
 SUMMARY_FILE = AGENT_DIR / "agent_decision_summary.md"

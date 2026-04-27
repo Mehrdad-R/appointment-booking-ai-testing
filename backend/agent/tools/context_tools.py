@@ -1,10 +1,11 @@
 import json
 import sqlite3
 from pathlib import Path
+import os
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DB_FILE = PROJECT_ROOT / "appointments.db"
+DB_FILE = Path(os.getenv("APP_DB_PATH", str(PROJECT_ROOT / "appointments.db")))
 
 
 def load_json_file(path: Path):

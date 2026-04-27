@@ -9,6 +9,8 @@ from typing import List, Optional
 import hashlib
 from pathlib import Path
 import json
+import os
+
 
 app = FastAPI(title="Appointment Booking API")
 app.add_middleware(
@@ -19,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 BASE_DIR = Path(__file__).resolve().parent
-DB_FILE = str(BASE_DIR.parent / "appointments.db")
+DB_FILE = os.getenv("APP_DB_PATH", str(BASE_DIR.parent / "appointments.db"))
 AGENT_DIR = BASE_DIR / "agent"
 AGENT_PLAN_FILE = AGENT_DIR / "test_plan.json"
 AGENT_SUMMARY_FILE = AGENT_DIR / "agent_decision_summary.md"

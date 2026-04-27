@@ -5,6 +5,7 @@ pipeline {
         PYTHON_EXE = 'C:\\Users\\mrakh\\AppData\\Local\\Programs\\Python\\Python310\\python.exe'
         GEMINI_API_KEY = credentials('gemini-api-key')
         GEMINI_MODEL = 'gemini-2.5-flash-lite'
+        APP_DB_PATH = 'C:\\ProgramData\\AppointmentBooking\\appointments.db'
     }
 
     stages {
