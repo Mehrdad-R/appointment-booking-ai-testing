@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header dashboard-header">
+            <div>
+                <h1>Customer Dashboard</h1>
+                <p class="subtitle" id="customer-welcome">Welcome</p>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </header>
+
+        <main class="dashboard">
+            <section class="card">
+                <h2>Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="total-count">0</h3>
+                        <p>Total Appointments</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="scheduled-count">0</h3>
+                        <p>Scheduled</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="cancelled-count">0</h3>
+                        <p>Cancelled</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Customer Actions</h2>
+                <div class="action-buttons">
+                    <a class="nav-btn" href="book-appointment.html">Book New Appointment</a>
+                    <a class="nav-btn" href="my-appointments.html">View My Appointments</a>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Recent Appointments</h2>
+                <div id="recent-appointments">
+                    <p class="empty-state">Loading appointments...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const session = requireAuth("customer");
+
+        async function loadDashboard() {
+            if (!session) return;
+
+            document.getElementById("customer-welcome").textContent =
+                `Welcome, ${session.user.username}`;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/my-appointments`, {
+                    headers: {
+                        "Authorization": `Bearer ${session.token}`
+                    }
+                });
+
+                const appointments = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById("recent-appointments").innerHTML =
+                        `<p class="empty-state">Could not load appointments.</p>`;
+                    return;
+                }
+
+                const total = appointments.length;
+                const scheduled = appointments.filter(a => a.status === "scheduled").length;
+                const cancelled = appointments.filter(a => a.status === "cancelled").length;
+
+                document.getElementById("total-count").textContent = total;
+                document.getElementById("scheduled-count").textContent = scheduled;
+                document.getElementById("cancelled-count").textContent = cancelled;
+
+                const recent = appointments.slice(0, 3);
+
+                if (recent.length === 0) {
+                    document.getElementById("recent-appointments").innerHTML =
+                        `<p class="empty-state">No appointments yet.</p>`;
+                    return;
+                }
+
+                document.getElementById("recent-appointments").innerHTML = recent.map(appt => `
+                    <div class="appointment-card">
+                        <h3>${appt.title}</h3>
+                        <p><strong>Start:</strong> ${new Date(appt.start).toLocaleString()}</p>
+                        <p><strong>End:</strong> ${new Date(appt.end).toLocaleString()}</p>
+                        <p><strong>Status:</strong> <span class="status-badge">${appt.status}</span></p>
+                    </div>
+                `).join("");
+
+            } catch (error) {
+                document.getElementById("recent-appointments").innerHTML =
+                    `<p class="empty-state">Backend connection failed.</p>`;
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

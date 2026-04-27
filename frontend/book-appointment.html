@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header dashboard-header">
+            <div>
+                <h1>Book Appointment</h1>
+                <p class="subtitle">Create a new booking</p>
+            </div>
+            <div class="header-actions">
+                <a class="nav-btn small-btn" href="customer-dashboard.html">Dashboard</a>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="dashboard single-column">
+            <section class="card">
+                <h2>New Appointment</h2>
+                <form id="book-form">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" required>
+
+                    <label for="start">Start Time</label>
+                    <input type="datetime-local" id="start" required>
+
+                    <label for="end">End Time</label>
+                    <input type="datetime-local" id="end" required>
+
+                    <button type="submit">Create Appointment</button>
+                </form>
+
+                <div id="book-message" class="message-box"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const session = requireAuth("customer");
+        const bookForm = document.getElementById("book-form");
+        const bookMessage = document.getElementById("book-message");
+
+        bookForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const payload = {
+                title: document.getElementById("title").value.trim(),
+                start: document.getElementById("start").value,
+                end: document.getElementById("end").value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/my-appointments`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session.token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    bookMessage.textContent = "Appointment created successfully.";
+                    bookMessage.style.color = "green";
+                    bookForm.reset();
+                } else {
+                    bookMessage.textContent = `Error: ${data.detail}`;
+                    bookMessage.style.color = "red";
+                }
+            } catch (error) {
+                bookMessage.textContent = "Error: Could not connect to backend.";
+                bookMessage.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>

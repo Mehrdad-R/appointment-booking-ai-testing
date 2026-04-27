@@ -73,6 +73,14 @@ pipeline {
             }
         }
 
+        stage('Sync Agent Snapshot to Database') {
+            steps {
+                bat '''
+                    venv\\Scripts\\python backend\\agent\\sync_agent_snapshot_to_db.py
+                '''
+            }
+        }
+
         stage('Archive Agent Artifacts') {
             steps {
                 archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,backend/agent/history_runtime.json,backend/agent/agent_decision_summary.md,agent-report.xml', fingerprint: true

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Appointment Booking System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container auth-page">
+        <div class="card auth-card">
+            <h1>Appointment Booking System</h1>
+
+            <form id="login-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <div id="login-message" class="message-box"></div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const loginForm = document.getElementById("login-form");
+        const loginMessage = document.getElementById("login-message");
+
+        const existingUser = getCurrentUser();
+        const existingToken = getToken();
+
+        if (existingUser && existingToken) {
+            redirectByRole(existingUser);
+        }
+
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    saveSession(data.token, data.user);
+                    loginMessage.textContent = `Login successful. Redirecting as ${data.user.role}...`;
+                    loginMessage.style.color = "green";
+                    redirectByRole(data.user);
+                } else {
+                    loginMessage.textContent = `Error: ${data.detail}`;
+                    loginMessage.style.color = "red";
+                }
+            } catch (error) {
+                loginMessage.textContent = "Error: Could not connect to backend.";
+                loginMessage.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>

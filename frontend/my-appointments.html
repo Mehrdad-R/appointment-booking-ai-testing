@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <header class="app-header dashboard-header">
+            <div>
+                <h1>My Appointments</h1>
+                <p class="subtitle">Manage your bookings</p>
+            </div>
+            <div class="header-actions">
+                <a class="nav-btn small-btn" href="customer-dashboard.html">Dashboard</a>
+                <a class="nav-btn small-btn" href="book-appointment.html">Book New</a>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="dashboard single-column">
+            <section class="card">
+                <h2>Appointments</h2>
+                <div id="appointments-list">
+                    <p class="empty-state">Loading appointments...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const session = requireAuth("customer");
+        let activeRescheduleId = null;
+
+        function formatDateTime(dateTimeString) {
+            return new Date(dateTimeString).toLocaleString();
+        }
+
+        function toDateTimeLocalValue(dateTimeString) {
+            const date = new Date(dateTimeString);
+            const offset = date.getTimezoneOffset();
+            const localDate = new Date(date.getTime() - offset * 60000);
+            return localDate.toISOString().slice(0, 16);
+        }
+
+        async function loadAppointments() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/my-appointments`, {
+                    headers: {
+                        "Authorization": `Bearer ${session.token}`
+                    }
+                });
+
+                const appointments = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById("appointments-list").innerHTML =
+                        `<p class="empty-state">Could not load appointments.</p>`;
+                    return;
+                }
+
+                renderAppointments(appointments);
+            } catch (error) {
+                document.getElementById("appointments-list").innerHTML =
+                    `<p class="empty-state">Backend connection failed.</p>`;
+            }
+        }
+
+        function renderAppointments(appointments) {
+            const container = document.getElementById("appointments-list");
+
+            if (appointments.length === 0) {
+                container.innerHTML = `<p class="empty-state">No appointments found.</p>`;
+                return;
+            }
+
+            container.innerHTML = appointments.map(appt => `
+                <div class="appointment-card">
+                    <h3>${appt.title}</h3>
+                    <p><strong>Start:</strong> ${formatDateTime(appt.start)}</p>
+                    <p><strong>End:</strong> ${formatDateTime(appt.end)}</p>
+                    <p><strong>Status:</strong> <span class="status-badge">${appt.status}</span></p>
+
+                    <div class="appointment-actions">
+                        ${appt.status !== "cancelled"
+                            ? `
+                                <button class="cancel-btn" onclick="cancelAppointment('${appt.id}')">Cancel</button>
+                                <button class="reschedule-btn" onclick="openRescheduleForm('${appt.id}')">Reschedule</button>
+                              `
+                            : `<span class="cancelled-label">Already Cancelled</span>`
+                        }
+                    </div>
+
+                    ${
+                        activeRescheduleId === appt.id
+                            ? `
+                                <div class="reschedule-form">
+                                    <h4>Reschedule Appointment</h4>
+
+                                    <label>New Start Time</label>
+                                    <input type="datetime-local" id="reschedule-start-${appt.id}" value="${toDateTimeLocalValue(appt.start)}">
+
+                                    <label>New End Time</label>
+                                    <input type="datetime-local" id="reschedule-end-${appt.id}" value="${toDateTimeLocalValue(appt.end)}">
+
+                                    <div class="reschedule-actions">
+                                        <button class="save-btn" onclick="submitReschedule('${appt.id}')">Save Reschedule</button>
+                                        <button class="close-btn" onclick="closeRescheduleForm()">Close</button>
+                                    </div>
+                                </div>
+                            `
+                            : ""
+                    }
+                </div>
+            `).join("");
+        }
+
+        async function cancelAppointment(appointmentId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/my-appointments/${appointmentId}/cancel`, {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(`Error: ${data.detail}`);
+                    return;
+                }
+
+                activeRescheduleId = null;
+                loadAppointments();
+            } catch (error) {
+                alert("Could not connect to backend.");
+            }
+        }
+
+        function openRescheduleForm(appointmentId) {
+            activeRescheduleId = appointmentId;
+            loadAppointments();
+        }
+
+        function closeRescheduleForm() {
+            activeRescheduleId = null;
+            loadAppointments();
+        }
+
+        async function submitReschedule(appointmentId) {
+            const payload = {
+                start: document.getElementById(`reschedule-start-${appointmentId}`).value,
+                end: document.getElementById(`reschedule-end-${appointmentId}`).value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/my-appointments/${appointmentId}/reschedule`, {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session.token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert(`Error: ${data.detail}`);
+                    return;
+                }
+
+                activeRescheduleId = null;
+                loadAppointments();
+            } catch (error) {
+                alert("Could not connect to backend.");
+            }
+        }
+
+        loadAppointments();
+    </script>
+</body>
+</html>

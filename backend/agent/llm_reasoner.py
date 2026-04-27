@@ -4,12 +4,11 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-from tools.context_tools import load_optional_json, merge_history_sources
+from tools.context_tools import load_optional_json, merge_history_sources, load_runtime_history_from_db
 
 
 BASE_DIR = Path(__file__).resolve().parent
 HISTORY_SEED_FILE = BASE_DIR / "history_summary.json"
-HISTORY_RUNTIME_FILE = BASE_DIR / "history_runtime.json"
 
 
 def strip_code_fences(text: str) -> str:
@@ -26,7 +25,7 @@ def strip_code_fences(text: str) -> str:
 
 def load_history_summary():
     seed = load_optional_json(HISTORY_SEED_FILE)
-    runtime = load_optional_json(HISTORY_RUNTIME_FILE)
+    runtime = load_runtime_history_from_db()
     return merge_history_sources(seed, runtime)
 
 
@@ -39,12 +38,12 @@ Your job is to produce a JSON test plan for Jenkins.
 You are given:
 1. The list of files changed in the current commit
 2. A project-specific mapping of files to risk levels, test groups, and important tests
-3. Retrieved CI/test history from previous builds
+3. Retrieved CI/test history from previous builds stored in the database
 
 Instructions:
 - Think about which files are most important
 - Use the retrieved history to adjust your risk judgment
-- Prefer smoke tests for low-risk frontend/styling-only changes
+- Prefer smoke tests for low-risk frontend or styling-only changes
 - Prefer smoke + regression for backend, agent, or core test changes
 - If changed files overlap with previously high-risk or failure-prone areas, increase confidence in running regression
 - Return ONLY valid JSON
@@ -65,7 +64,7 @@ Changed files:
 Project mapping:
 {json.dumps(mapping, indent=2)}
 
-Retrieved CI/test history:
+Retrieved CI/test history from database:
 {json.dumps(history_summary, indent=2)}
 """.strip()
 
@@ -142,4 +141,3 @@ def call_gemini_for_test_plan(changed_files, mapping):
         return json.loads(cleaned_text)
     except json.JSONDecodeError:
         raise RuntimeError(f"Gemini returned non-JSON output:\n{cleaned_text}")
-    
