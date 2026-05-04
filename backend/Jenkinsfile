@@ -43,9 +43,16 @@ pipeline {
         stage('Write Agent Decision Summary') {
             steps {
                 bat '''
+                    if not exist backend\\agent\\snapshot\\%BUILD_NUMBER% mkdir backend\\agent\\snapshot\\%BUILD_NUMBER%
+
                     venv\\Scripts\\python backend\\agent\\write_decision_summary.py
-                    echo Agent decision summary:
-                    type backend\\agent\\agent_decision_summary.md
+
+                    copy /Y backend\\agent\\test_plan.json backend\\agent\\snapshot\\%BUILD_NUMBER%\\test_plan.json
+                    if exist backend\\agent\\history_runtime.json copy /Y backend\\agent\\history_runtime.json backend\\agent\\snapshot\\%BUILD_NUMBER%\\history_runtime.json
+                    copy /Y backend\\agent\\agent_decision_summary.md backend\\agent\\snapshot\\%BUILD_NUMBER%\\agent_decision_summary.md
+
+                    echo ===== SNAPSHOT SUMMARY =====
+                    type backend\\agent\\snapshot\\%BUILD_NUMBER%\\agent_decision_summary.md
                 '''
             }
         }
@@ -80,6 +87,13 @@ pipeline {
         stage('Sync Agent Snapshot to Database') {
             steps {
                 bat '''
+                    copy /Y backend\\agent\\snapshot\\%BUILD_NUMBER%\\test_plan.json backend\\agent\\test_plan.json
+                    if exist backend\\agent\\snapshot\\%BUILD_NUMBER%\\history_runtime.json copy /Y backend\\agent\\snapshot\\%BUILD_NUMBER%\\history_runtime.json backend\\agent\\history_runtime.json
+                    copy /Y backend\\agent\\snapshot\\%BUILD_NUMBER%\\agent_decision_summary.md backend\\agent\\agent_decision_summary.md
+
+                    echo ===== SUMMARY BEING SYNCED =====
+                    type backend\\agent\\agent_decision_summary.md
+
                     venv\\Scripts\\python -c "from backend.db import get_database_engine; print('DB ENGINE:', get_database_engine())"
                     venv\\Scripts\\python backend\\agent\\sync_agent_snapshot_to_db.py
                 '''
@@ -88,7 +102,7 @@ pipeline {
 
         stage('Archive Agent Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'backend/agent/changed_files.json,backend/agent/test_plan.json,backend/agent/history_runtime.json,backend/agent/agent_decision_summary.md,agent-report.xml', fingerprint: true
+                archiveArtifacts artifacts: "backend/agent/snapshot/${env.BUILD_NUMBER}/*", fingerprint: true
             }
         }
     }
