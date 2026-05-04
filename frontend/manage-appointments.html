@@ -4,30 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Appointments</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header dashboard-header">
-            <div>
-                <h1>Manage Appointments</h1>
-                <p class="subtitle">Employee management view</p>
-            </div>
-            <div class="header-actions">
-                <a class="nav-btn small-btn" href="employee-dashboard.html">Dashboard</a>
-                <a class="nav-btn small-btn" href="agent-insights.html">Agent Insights</a>
-                <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </header>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="employee-dashboard.html">Overview</a>
+                <a class="sidebar-link active" href="manage-appointments.html">Manage Appointments</a>
+            </nav>
+        </aside>
 
-        <main class="dashboard single-column">
-            <section class="card">
-                <h2>All Appointments</h2>
-                <div id="appointments-list">
-                    <p class="empty-state">Loading appointments...</p>
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>Manage Appointments</h1>
+                    <p class="subtitle">Employee scheduling management view</p>
                 </div>
-            </section>
-        </main>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </header>
+
+            <main class="content-area single-column-layout">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>All Appointments</h2>
+                    </div>
+                    <div id="appointments-list">
+                        <p class="empty-state">Loading appointments...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script src="auth.js"></script>

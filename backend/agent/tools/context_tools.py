@@ -1,11 +1,14 @@
 import json
-import sqlite3
 from pathlib import Path
-import os
+import sys
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DB_FILE = Path(os.getenv("APP_DB_PATH", str(PROJECT_ROOT / "appointments.db")))
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+from backend.db import get_connection
 
 
 def load_json_file(path: Path):
@@ -69,14 +72,9 @@ def merge_history_sources(seed, runtime):
     }
 
 
-def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 def load_runtime_history_from_db():
     try:
-        conn = get_db_connection()
+        conn = get_connection()
         cursor = conn.cursor()
 
         latest_run = cursor.execute(
@@ -181,10 +179,11 @@ def load_runtime_history_from_db():
             "selected_group_frequency": selected_group_frequency
         }
 
-        print("DEBUG: Retrieved runtime history from SQLite:")
+        print("DEBUG: Retrieved runtime history from database:")
         print(json.dumps(debug_payload, indent=2))
 
         return debug_payload
 
-    except sqlite3.OperationalError:
+    except Exception as exc:
+        print(f"DEBUG: Could not retrieve runtime history from database: {exc}")
         return {}

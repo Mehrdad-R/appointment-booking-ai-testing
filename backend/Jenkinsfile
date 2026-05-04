@@ -5,7 +5,7 @@ pipeline {
         PYTHON_EXE = 'C:\\Users\\mrakh\\AppData\\Local\\Programs\\Python\\Python310\\python.exe'
         GEMINI_API_KEY = credentials('gemini-api-key')
         GEMINI_MODEL = 'gemini-2.5-flash-lite'
-        APP_DB_PATH = 'C:\\ProgramData\\AppointmentBooking\\appointments.db'
+        DATABASE_URL = credentials('neon-database-url')
     }
 
     stages {
@@ -28,6 +28,8 @@ pipeline {
                     venv\\Scripts\\python -c "import subprocess, json; files=subprocess.check_output(['git','show','--pretty=','--name-only','HEAD'], text=True).splitlines(); files=[f for f in files if f.strip()]; open(r'backend\\agent\\changed_files.json','w',encoding='utf-8').write(json.dumps(files, indent=2))"
                     echo Changed files:
                     type backend\\agent\\changed_files.json
+
+                    venv\\Scripts\\python -c "from backend.db import get_database_engine; print('DB ENGINE:', get_database_engine())"
 
                     venv\\Scripts\\python backend\\agent\\generate_test_plan.py
 
@@ -77,6 +79,7 @@ pipeline {
         stage('Sync Agent Snapshot to Database') {
             steps {
                 bat '''
+                    venv\\Scripts\\python -c "from backend.db import get_database_engine; print('DB ENGINE:', get_database_engine())"
                     venv\\Scripts\\python backend\\agent\\sync_agent_snapshot_to_db.py
                 '''
             }

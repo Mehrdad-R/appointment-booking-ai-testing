@@ -3,48 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Booking System</title>
+    <title>Appointment Booking Platform</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header">
-            <h1>Appointment Booking System</h1>
-            <p class="subtitle">Sprint 1 Dashboard</p>
+    <div class="home-page">
+        <header class="home-header">
+            <div class="home-header-inner">
+                <div class="home-brand">Appointment Booking</div>
+
+                <nav class="home-nav">
+                    <a href="#features">Features</a>
+                    <a href="#benefits">Benefits</a>
+                    <a href="#workflow">Workflow</a>
+                    <a href="login.html" class="home-login-btn">Login</a>
+                </nav>
+            </div>
         </header>
 
-        <main class="dashboard">
-            <section class="card form-card">
-                <h2>Create Appointment</h2>
-                <form id="appointment-form">
-                    <label for="title">Title</label>
-                    <input type="text" id="title" name="title" placeholder="Enter appointment title" required>
+        <main>
+            <section class="home-hero">
+                <div class="home-container">
+                    <div class="home-hero-content">
+                        <span class="home-hero-tag">Smart scheduling platform</span>
+                        <h1>Book appointments and manage schedules with ease.</h1>
+                        <p class="home-hero-subtitle">
+                            A cleaner appointment experience for customers, a practical scheduling workflow
+                            for staff, and a dedicated administrative space for operational insights.
+                        </p>
 
-                    <label for="start">Start Time</label>
-                    <input type="datetime-local" id="start" name="start" required>
+                        <div class="home-tab-row">
+                            <button type="button" class="home-tab active">Customer Booking</button>
+                            <button type="button" class="home-tab">Employee Management</button>
+                            <button type="button" class="home-tab">Admin Insights</button>
+                        </div>
 
-                    <label for="end">End Time</label>
-                    <input type="datetime-local" id="end" name="end" required>
+                        <div class="home-search-card">
+                            <div class="home-search-grid">
+                                <div class="home-search-field">
+                                    <span class="home-field-label">Service</span>
+                                    <span class="home-field-value">Choose appointment type</span>
+                                </div>
 
-                    <button type="submit">Create Appointment</button>
-                </form>
+                                <div class="home-search-field">
+                                    <span class="home-field-label">Date</span>
+                                    <span class="home-field-value">Select preferred date</span>
+                                </div>
 
-                <div id="message-box" class="message-box"></div>
+                                <div class="home-search-field">
+                                    <span class="home-field-label">Access</span>
+                                    <span class="home-field-value">Customer, employee, or admin</span>
+                                </div>
+
+                                <a href="login.html" class="home-search-action">Get Started</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <section class="card list-card">
-                <h2>Appointments</h2>
-                <div id="appointments-list">
-                    <p class="empty-state">No appointments scheduled yet.</p>
-                </div>
+            <section class="home-section" id="features">
+                <div class="home-container">
+                    <div class="section-header centered-header">
+                        <span class="section-kicker">Everything in one place</span>
+                        <h2>Designed for booking, management, and administrative visibility</h2>
+                        <p>
+                            The platform supports a full appointment workflow while keeping each role focused
+                            on the tools and information that matter most.
+                        </p>
+                    </div>
 
-                <div class="danger-zone">
-                    <button id="delete-all-btn" class="delete-all-btn">Delete All Appointments</button>
+                    <div class="home-card-grid three-col">
+                        <article class="home-info-card">
+                            <div class="card-badge">Customer</div>
+                            <h3>Self-service scheduling</h3>
+                            <p>
+                                Create appointments, review upcoming bookings, and cancel or reschedule
+                                through a simpler customer-facing workflow.
+                            </p>
+                        </article>
+
+                        <article class="home-info-card">
+                            <div class="card-badge">Employee</div>
+                            <h3>Operational scheduling tools</h3>
+                            <p>
+                                View all appointments, manage day-to-day scheduling changes, and keep
+                                appointment activity visible across the system.
+                            </p>
+                        </article>
+
+                        <article class="home-info-card">
+                            <div class="card-badge">Admin</div>
+                            <h3>AI and QA insights</h3>
+                            <p>
+                                Review agent-generated test plans, reasoning summaries, and runtime
+                                history through the administrative interface.
+                            </p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-section soft-section" id="benefits">
+                <div class="home-container">
+                    <div class="section-header centered-header">
+                        <span class="section-kicker">Why it works well</span>
+                        <h2>A cleaner, more structured experience</h2>
+                        <p>
+                            This layout gives the product a more realistic and polished feel while improving
+                            clarity for users and for the demo.
+                        </p>
+                    </div>
+
+                    <div class="home-card-grid four-col">
+                        <article class="home-benefit-card">
+                            <h3>Clearer entry points</h3>
+                            <p>Users can understand where to go immediately without guessing.</p>
+                        </article>
+
+                        <article class="home-benefit-card">
+                            <h3>Role-based experience</h3>
+                            <p>Each user type sees the interface and actions that fit their role.</p>
+                        </article>
+
+                        <article class="home-benefit-card">
+                            <h3>Administrative visibility</h3>
+                            <p>System-level AI insights remain separate from normal staff operations.</p>
+                        </article>
+
+                        <article class="home-benefit-card">
+                            <h3>Stronger product feel</h3>
+                            <p>The website looks more like a real service platform than a prototype.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-section" id="workflow">
+                <div class="home-container">
+                    <div class="section-header centered-header">
+                        <span class="section-kicker">From booking to management</span>
+                        <h2>One platform, three connected workflows</h2>
+                        <p>
+                            Customers book, employees manage operations, and admins review AI-powered testing insight.
+                        </p>
+                    </div>
+
+                    <div class="home-card-grid three-col">
+                        <article class="home-step-card">
+                            <div class="step-circle">01</div>
+                            <h3>Login by role</h3>
+                            <p>Customers, employees, and admins are routed into their own workspaces.</p>
+                        </article>
+
+                        <article class="home-step-card">
+                            <div class="step-circle">02</div>
+                            <h3>Book or manage</h3>
+                            <p>Customers manage personal appointments while staff manage scheduling activity.</p>
+                        </article>
+
+                        <article class="home-step-card">
+                            <div class="step-circle">03</div>
+                            <h3>Review insights</h3>
+                            <p>Admins can access AI-generated QA insight and retrieval-backed history.</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-cta-section">
+                <div class="home-container">
+                    <div class="home-cta-box">
+                        <div>
+                            <span class="section-kicker">Ready to continue?</span>
+                            <h2>Access the platform and start managing appointments.</h2>
+                        </div>
+                        <a href="login.html" class="home-cta-button">Go to Login</a>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
-
-    <script src="app.js"></script>
 </body>
 </html>

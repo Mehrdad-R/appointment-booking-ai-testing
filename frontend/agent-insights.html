@@ -4,54 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Insights</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header dashboard-header">
-            <div>
-                <h1>Agent Insights</h1>
-                <p class="subtitle">Employee view of AI QA orchestration</p>
-            </div>
-            <div class="header-actions">
-                <a class="nav-btn small-btn" href="employee-dashboard.html">Dashboard</a>
-                <a class="nav-btn small-btn" href="manage-appointments.html">Manage Appointments</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="admin-dashboard.html">Overview</a>
+                <a class="sidebar-link active" href="agent-insights.html">Agent Insights</a>
+            </nav>
+        </aside>
+
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>Agent Insights</h1>
+                    <p class="subtitle">Administrative AI and QA monitoring view</p>
+                </div>
                 <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </header>
+            </header>
 
-        <main class="dashboard single-column">
-            <section class="card">
-                <h2>Latest AI Test Plan</h2>
-                <div id="plan-overview">
-                    <p class="empty-state">Loading AI test plan...</p>
-                </div>
-            </section>
+            <main class="content-area single-column-layout">
+                <section class="panel full-width-panel">
+                    <div class="dashboard-highlight">
+                        <div>
+                            <span class="section-kicker">Latest orchestration snapshot</span>
+                            <h2>AI-generated test planning and runtime QA context</h2>
+                            <p>
+                                Review the most recent decision source, risk level, selected test groups,
+                                generated priority tests, and runtime history retrieved by the system.
+                            </p>
+                        </div>
+                    </div>
+                </section>
 
-            <section class="card">
-                <h2>Priority Tests</h2>
-                <div id="priority-tests">
-                    <p class="empty-state">Loading priority tests...</p>
-                </div>
-            </section>
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Overview</h2>
+                    </div>
+                    <div id="insight-summary-cards" class="insight-summary-grid">
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Decision Source</span>
+                            <strong>Loading...</strong>
+                        </div>
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Risk Level</span>
+                            <strong>Loading...</strong>
+                        </div>
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Selected Groups</span>
+                            <strong>Loading...</strong>
+                        </div>
+                    </div>
+                </section>
 
-            <section class="card">
-                <h2>Agent Decision Summary</h2>
-                <pre id="agent-summary" class="summary-box">Loading summary...</pre>
-            </section>
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Plan Details</h2>
+                    </div>
+                    <div id="plan-overview">
+                        <p class="empty-state">Loading AI test plan...</p>
+                    </div>
+                </section>
 
-            <section class="card">
-                <h2>Runtime History</h2>
-                <div id="runtime-history">
-                    <p class="empty-state">Loading runtime history...</p>
-                </div>
-            </section>
-        </main>
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Priority Tests</h2>
+                    </div>
+                    <div id="priority-tests">
+                        <p class="empty-state">Loading priority tests...</p>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Decision Summary</h2>
+                    </div>
+                    <pre id="agent-summary" class="summary-box">Loading summary...</pre>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Runtime History</h2>
+                    </div>
+                    <div id="runtime-history">
+                        <p class="empty-state">Loading runtime history...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        const session = requireAuth("employee");
+        const session = requireAuth("admin");
+
+        function createChipList(items) {
+            if (!items || items.length === 0) {
+                return `<p class="empty-state">None available.</p>`;
+            }
+
+            return `
+                <div class="chip-list">
+                    ${items.map(item => `<span class="info-chip">${item}</span>`).join("")}
+                </div>
+            `;
+        }
+
+        function renderSummaryCards(plan) {
+            const selectedGroups = (plan?.selected_groups ?? []).join(", ") || "None";
+
+            document.getElementById("insight-summary-cards").innerHTML = `
+                <div class="insight-summary-card">
+                    <span class="summary-label">Decision Source</span>
+                    <strong>${plan?.decision_source ?? "N/A"}</strong>
+                </div>
+                <div class="insight-summary-card">
+                    <span class="summary-label">Risk Level</span>
+                    <strong>${plan?.risk_level ?? "N/A"}</strong>
+                </div>
+                <div class="insight-summary-card">
+                    <span class="summary-label">Selected Groups</span>
+                    <strong>${selectedGroups}</strong>
+                </div>
+            `;
+        }
 
         function renderPlan(plan) {
             if (!plan) {
@@ -62,25 +141,18 @@
                 return;
             }
 
-            document.getElementById("plan-overview").innerHTML = `
-                <div class="insight-grid">
-                    <div class="insight-card">
-                        <h3>Decision Source</h3>
-                        <p>${plan.decision_source ?? "N/A"}</p>
-                    </div>
-                    <div class="insight-card">
-                        <h3>Risk Level</h3>
-                        <p>${plan.risk_level ?? "N/A"}</p>
-                    </div>
-                    <div class="insight-card">
-                        <h3>Selected Groups</h3>
-                        <p>${(plan.selected_groups ?? []).join(", ") || "None"}</p>
-                    </div>
-                </div>
+            renderSummaryCards(plan);
 
-                <div class="insight-detail">
-                    <p><strong>Changed Files:</strong> ${(plan.changed_files ?? []).join(", ") || "None"}</p>
-                    <p><strong>Reason:</strong> ${plan.reason ?? "No explanation available."}</p>
+            document.getElementById("plan-overview").innerHTML = `
+                <div class="plan-detail-grid">
+                    <div class="plan-detail-card">
+                        <h3>Changed Files</h3>
+                        ${createChipList(plan.changed_files ?? [])}
+                    </div>
+                    <div class="plan-detail-card">
+                        <h3>Reason</h3>
+                        <p class="plan-reason-text">${plan.reason ?? "No explanation available."}</p>
+                    </div>
                 </div>
             `;
 
@@ -93,9 +165,9 @@
             }
 
             document.getElementById("priority-tests").innerHTML = `
-                <ul class="feature-list">
-                    ${priorityTests.map(test => `<li>${test}</li>`).join("")}
-                </ul>
+                <div class="chip-list">
+                    ${priorityTests.map(test => `<span class="info-chip">${test}</span>`).join("")}
+                </div>
             `;
         }
 
@@ -116,44 +188,44 @@
             const highRiskModules = history.high_risk_modules ?? [];
 
             document.getElementById("runtime-history").innerHTML = `
-                <div class="history-section">
-                    <h3>Recent Failures</h3>
-                    ${
-                        recentFailures.length
-                            ? `<ul class="feature-list">
-                                ${recentFailures.map(item => `<li><strong>${item.test_name}</strong>: ${item.failure_reason}</li>`).join("")}
-                               </ul>`
-                            : `<p class="empty-state">No recent failures recorded.</p>`
-                    }
-                </div>
+                <div class="history-card-grid">
+                    <div class="history-card">
+                        <h3>Recent Failures</h3>
+                        ${
+                            recentFailures.length
+                                ? `<ul class="feature-list">
+                                    ${recentFailures.map(item => `<li><strong>${item.test_name}</strong> — ${item.failure_reason}</li>`).join("")}
+                                   </ul>`
+                                : `<p class="empty-state">No recent failures recorded.</p>`
+                        }
+                    </div>
 
-                <div class="history-section">
-                    <h3>Slow Tests</h3>
-                    ${
-                        slowTests.length
-                            ? `<ul class="feature-list">
-                                ${slowTests.map(item => `<li><strong>${item.test_name}</strong>: ${item.estimated_runtime}</li>`).join("")}
-                               </ul>`
-                            : `<p class="empty-state">No slow tests recorded.</p>`
-                    }
-                </div>
+                    <div class="history-card">
+                        <h3>Slow Tests</h3>
+                        ${
+                            slowTests.length
+                                ? `<ul class="feature-list">
+                                    ${slowTests.map(item => `<li><strong>${item.test_name}</strong> — ${item.estimated_runtime}</li>`).join("")}
+                                   </ul>`
+                                : `<p class="empty-state">No slow tests recorded.</p>`
+                        }
+                    </div>
 
-                <div class="history-section">
-                    <h3>High-Risk Modules</h3>
-                    ${
-                        highRiskModules.length
-                            ? `<ul class="feature-list">
-                                ${highRiskModules.map(module => `<li>${module}</li>`).join("")}
-                               </ul>`
-                            : `<p class="empty-state">No high-risk modules recorded.</p>`
-                    }
+                    <div class="history-card full-span-card">
+                        <h3>High-Risk Modules</h3>
+                        ${
+                            highRiskModules.length
+                                ? createChipList(highRiskModules)
+                                : `<p class="empty-state">No high-risk modules recorded.</p>`
+                        }
+                    </div>
                 </div>
             `;
         }
 
         async function loadInsights() {
             try {
-                const response = await fetch(`${API_BASE_URL}/employee/agent/insights`, {
+                const response = await fetch(`${API_BASE_URL}/admin/agent/insights`, {
                     headers: {
                         "Authorization": `Bearer ${session.token}`
                     }

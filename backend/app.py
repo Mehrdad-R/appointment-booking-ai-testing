@@ -4,12 +4,15 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 from uuid import uuid4
-import sqlite3
 from typing import List, Optional
 import hashlib
 from pathlib import Path
 import json
 import os
+try:
+    from backend.db import get_connection, initialize_schema
+except ImportError:
+    from db import get_connection, initialize_schema
 
 
 app = FastAPI(title="Appointment Booking API")
@@ -21,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 BASE_DIR = Path(__file__).resolve().parent
-DB_FILE = os.getenv("APP_DB_PATH", str(BASE_DIR.parent / "appointments.db"))
 AGENT_DIR = BASE_DIR / "agent"
 AGENT_PLAN_FILE = AGENT_DIR / "test_plan.json"
 AGENT_SUMMARY_FILE = AGENT_DIR / "agent_decision_summary.md"
@@ -55,11 +57,6 @@ class LoginResponse(BaseModel):
     token: str
     user: UserInfo
 
-def get_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
@@ -85,6 +82,12 @@ def seed_demo_users():
             "username": "employee1",
             "password_hash": hash_password("employee123"),
             "role": "employee"
+        },
+        {
+            "id": str(uuid4()),
+            "username": "admin1",
+            "password_hash": hash_password("admin123"),
+            "role": "admin"
         }
     ]
 
@@ -358,111 +361,7 @@ def get_latest_agent_snapshot_from_db():
     }
 
 def init_db():
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS appointments (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            start TEXT NOT NULL,
-            end TEXT NOT NULL,
-            status TEXT NOT NULL
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            username TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
-            role TEXT NOT NULL
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sessions (
-            token TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_runs (
-            id TEXT PRIMARY KEY,
-            created_at TEXT NOT NULL,
-            decision_source TEXT,
-            risk_level TEXT,
-            selected_groups_json TEXT,
-            reason TEXT,
-            summary_text TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_changed_files (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_priority_tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_recent_failures (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            failure_reason TEXT,
-            module_name TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_slow_tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            estimated_runtime TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_high_risk_modules (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            module_name TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    # Add customer_id to appointments if the table was created earlier without it
-    appointment_columns = [
-        row["name"] for row in cursor.execute("PRAGMA table_info(appointments)").fetchall()
-    ]
-
-    if "customer_id" not in appointment_columns:
-        cursor.execute("ALTER TABLE appointments ADD COLUMN customer_id TEXT")
-
-    conn.commit()
-    conn.close()
-
+    initialize_schema()
     seed_demo_users()
 
 # Helpers
@@ -546,7 +445,7 @@ def list_my_appointments(request: Request):
     cursor = conn.cursor()
 
     rows = cursor.execute(
-        "SELECT * FROM appointments WHERE customer_id = ? ORDER BY start",
+        'SELECT * FROM appointments WHERE customer_id = ? ORDER BY "start"',
         (user["id"],)
     ).fetchall()
 
@@ -588,7 +487,7 @@ def create_my_appointment(payload: AppointmentCreate, request: Request):
 
     cursor.execute(
         """
-        INSERT INTO appointments (id, title, start, end, status, customer_id)
+        INSERT INTO appointments (id, title, "start", "end", status, customer_id)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
@@ -689,7 +588,7 @@ def reschedule_my_appointment(
             )
 
     cursor.execute(
-        "UPDATE appointments SET start = ?, end = ? WHERE id = ?",
+        'UPDATE appointments SET "start" = ?, "end" = ? WHERE id = ?',
         (
             payload.start.isoformat(),
             payload.end.isoformat(),
@@ -716,7 +615,7 @@ def list_all_appointments_for_employee(request: Request):
     cursor = conn.cursor()
 
     rows = cursor.execute(
-        "SELECT * FROM appointments ORDER BY start"
+        'SELECT * FROM appointments ORDER BY "start"'
     ).fetchall()
 
     conn.close()
@@ -806,7 +705,7 @@ def reschedule_appointment_as_employee(
             )
 
     cursor.execute(
-        "UPDATE appointments SET start = ?, end = ? WHERE id = ?",
+        'UPDATE appointments SET "start" = ?, "end" = ? WHERE id = ?',
         (
             payload.start.isoformat(),
             payload.end.isoformat(),
@@ -847,6 +746,45 @@ def get_agent_insights(request: Request):
 def sync_agent_files_to_db(request: Request):
     user = get_current_user(request.headers.get("Authorization"))
     require_role(user, ["employee"])
+
+    plan = load_json_if_exists(AGENT_PLAN_FILE)
+    history = load_json_if_exists(AGENT_HISTORY_FILE)
+    summary = load_text_if_exists(AGENT_SUMMARY_FILE)
+
+    if plan is None:
+        raise HTTPException(status_code=404, detail="agent test plan file not found")
+
+    build_run_id = save_agent_snapshot_to_db(plan, summary, history)
+
+    return {
+        "message": "agent snapshot saved to database",
+        "build_run_id": build_run_id
+    }
+
+@app.get("/admin/agent/insights")
+def get_admin_agent_insights(request: Request):
+    user = get_current_user(request.headers.get("Authorization"))
+    require_role(user, ["admin"])
+
+    db_snapshot = get_latest_agent_snapshot_from_db()
+    if db_snapshot is not None:
+        return db_snapshot
+
+    plan = load_json_if_exists(AGENT_PLAN_FILE)
+    history = load_json_if_exists(AGENT_HISTORY_FILE)
+    summary = load_text_if_exists(AGENT_SUMMARY_FILE)
+
+    return {
+        "plan": plan,
+        "history": history,
+        "summary": summary
+    }
+
+
+@app.post("/admin/agent/sync-db")
+def sync_admin_agent_files_to_db(request: Request):
+    user = get_current_user(request.headers.get("Authorization"))
+    require_role(user, ["admin"])
 
     plan = load_json_if_exists(AGENT_PLAN_FILE)
     history = load_json_if_exists(AGENT_HISTORY_FILE)
@@ -926,7 +864,7 @@ def create_appointment(payload: AppointmentCreate):
     # Insert the new appointment into the SQLite database
     cursor.execute(
         """
-        INSERT INTO appointments (id, title, start, end, status, customer_id)
+        INSERT INTO appointments (id, title, "start", "end", status, customer_id)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
@@ -1027,7 +965,7 @@ def reschedule_appointment(appointment_id: str, payload: AppointmentReschedule):
 
     # Update the appointment in the database
     cursor.execute(
-        "UPDATE appointments SET start = ?, end = ? WHERE id = ?",
+        'UPDATE appointments SET "start" = ?, "end" = ? WHERE id = ?',
         (
             payload.start.isoformat(),
             payload.end.isoformat(),

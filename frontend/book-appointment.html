@@ -4,40 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Appointment</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header dashboard-header">
-            <div>
-                <h1>Book Appointment</h1>
-                <p class="subtitle">Create a new booking</p>
-            </div>
-            <div class="header-actions">
-                <a class="nav-btn small-btn" href="customer-dashboard.html">Dashboard</a>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="customer-dashboard.html">Overview</a>
+                <a class="sidebar-link active" href="book-appointment.html">Book Appointment</a>
+                <a class="sidebar-link" href="my-appointments.html">My Appointments</a>
+            </nav>
+        </aside>
+
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>Book Appointment</h1>
+                    <p class="subtitle">Choose a service and reserve your preferred time</p>
+                </div>
                 <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </header>
+            </header>
 
-        <main class="dashboard single-column">
-            <section class="card">
-                <h2>New Appointment</h2>
-                <form id="book-form">
-                    <label for="title">Title</label>
-                    <input type="text" id="title" required>
+            <main class="content-area single-column-layout">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Select a Service</h2>
+                    </div>
 
-                    <label for="start">Start Time</label>
-                    <input type="datetime-local" id="start" required>
+                    <div class="service-card-grid" id="service-card-grid">
+                        <button type="button" class="service-card active-service-card" data-service="Consultation">
+                            <span class="service-icon">🗓️</span>
+                            <strong>Consultation</strong>
+                            <p>General appointment discussion and planning.</p>
+                        </button>
 
-                    <label for="end">End Time</label>
-                    <input type="datetime-local" id="end" required>
+                        <button type="button" class="service-card" data-service="Follow-up">
+                            <span class="service-icon">🔄</span>
+                            <strong>Follow-up</strong>
+                            <p>Review progress and continue an existing appointment flow.</p>
+                        </button>
 
-                    <button type="submit">Create Appointment</button>
-                </form>
+                        <button type="button" class="service-card" data-service="Planning Session">
+                            <span class="service-icon">📋</span>
+                            <strong>Planning Session</strong>
+                            <p>Structured meeting for scheduling and next-step planning.</p>
+                        </button>
 
-                <div id="book-message" class="message-box"></div>
-            </section>
-        </main>
+                        <button type="button" class="service-card" data-service="Priority Review">
+                            <span class="service-icon">⚡</span>
+                            <strong>Priority Review</strong>
+                            <p>Reserved slot for higher-priority appointment needs.</p>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Booking Details</h2>
+                    </div>
+
+                    <form id="book-form" class="elevated-form">
+                        <label for="title">Selected Service</label>
+                        <input type="text" id="title" placeholder="Select a service above" required readonly>
+
+                        <label for="start">Start Time</label>
+                        <input type="datetime-local" id="start" required>
+
+                        <label for="end">End Time</label>
+                        <input type="datetime-local" id="end" required>
+
+                        <button type="submit">Create Appointment</button>
+                    </form>
+
+                    <div id="book-message" class="message-box"></div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script src="auth.js"></script>
@@ -45,6 +89,23 @@
         const session = requireAuth("customer");
         const bookForm = document.getElementById("book-form");
         const bookMessage = document.getElementById("book-message");
+        const serviceCards = document.querySelectorAll(".service-card");
+        const titleInput = document.getElementById("title");
+
+        function selectService(serviceName, selectedCard) {
+            titleInput.value = serviceName;
+            serviceCards.forEach(card => card.classList.remove("active-service-card"));
+            selectedCard.classList.add("active-service-card");
+        }
+
+        serviceCards.forEach(card => {
+            card.addEventListener("click", () => {
+                selectService(card.dataset.service, card);
+            });
+        });
+
+        // default selected service
+        titleInput.value = "Consultation";
 
         bookForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -71,6 +132,9 @@
                     bookMessage.textContent = "Appointment created successfully.";
                     bookMessage.style.color = "green";
                     bookForm.reset();
+                    titleInput.value = "Consultation";
+                    serviceCards.forEach(card => card.classList.remove("active-service-card"));
+                    serviceCards[0].classList.add("active-service-card");
                 } else {
                     bookMessage.textContent = `Error: ${data.detail}`;
                     bookMessage.style.color = "red";

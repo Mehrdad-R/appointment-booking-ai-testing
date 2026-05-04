@@ -4,52 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Dashboard</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header dashboard-header">
-            <div>
-                <h1>Employee Dashboard</h1>
-                <p class="subtitle" id="employee-welcome">Welcome</p>
-            </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </header>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link active" href="employee-dashboard.html">Overview</a>
+                <a class="sidebar-link" href="manage-appointments.html">Manage Appointments</a>
+            </nav>
+        </aside>
 
-        <main class="dashboard">
-            <section class="card">
-                <h2>Overview</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3 id="total-count">0</h3>
-                        <p>Total Appointments</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="scheduled-count">0</h3>
-                        <p>Scheduled</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="cancelled-count">0</h3>
-                        <p>Cancelled</p>
-                    </div>
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>Employee Dashboard</h1>
+                    <p class="subtitle" id="employee-welcome">Welcome</p>
                 </div>
-            </section>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </header>
 
-            <section class="card">
-                <h2>Employee Actions</h2>
-                <div class="action-buttons">
-                    <a class="nav-btn" href="manage-appointments.html">Manage Appointments</a>
-                    <a class="nav-btn" href="agent-insights.html">Agent Insights</a>
-                </div>
-            </section>
+            <main class="content-area">
+                <section class="panel full-width-panel">
+                    <div class="dashboard-highlight">
+                        <div>
+                            <span class="section-kicker">Scheduling operations</span>
+                            <h2>Keep appointment activity organized and up to date</h2>
+                            <p>
+                                Review the current scheduling overview, monitor system-wide activity,
+                                and move directly into appointment management when updates are needed.
+                            </p>
+                        </div>
 
-            <section class="card">
-                <h2>Recent System Appointments</h2>
-                <div id="recent-appointments">
-                    <p class="empty-state">Loading appointments...</p>
-                </div>
-            </section>
-        </main>
+                        <div class="action-buttons">
+                            <a class="nav-btn" href="manage-appointments.html">Manage Appointments</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Overview</h2>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="total-count">0</h3>
+                            <p>Total Appointments</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="scheduled-count">0</h3>
+                            <p>Scheduled</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="cancelled-count">0</h3>
+                            <p>Cancelled</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Recent Appointments</h2>
+                    </div>
+
+                    <div id="recent-appointments">
+                        <p class="empty-state">Loading appointments...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script src="auth.js"></script>
@@ -99,7 +125,6 @@
                         <p><strong>Start:</strong> ${new Date(appt.start).toLocaleString()}</p>
                         <p><strong>End:</strong> ${new Date(appt.end).toLocaleString()}</p>
                         <p><strong>Status:</strong> <span class="status-badge">${appt.status}</span></p>
-                        <p><strong>Customer ID:</strong> ${appt.customer_id ?? "N/A"}</p>
                     </div>
                 `).join("");
 

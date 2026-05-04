@@ -1,14 +1,18 @@
 import json
-import sqlite3
 from datetime import datetime
 from pathlib import Path
-import os
+import sys
 from uuid import uuid4
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 AGENT_DIR = PROJECT_ROOT / "backend" / "agent"
-DB_FILE = Path(os.getenv("APP_DB_PATH", str(PROJECT_ROOT / "appointments.db")))
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+from backend.db import get_connection, initialize_schema
+
 
 PLAN_FILE = AGENT_DIR / "test_plan.json"
 SUMMARY_FILE = AGENT_DIR / "agent_decision_summary.md"
@@ -29,84 +33,8 @@ def load_text_if_exists(path: Path):
         return f.read()
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def ensure_agent_tables(conn):
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_runs (
-            id TEXT PRIMARY KEY,
-            created_at TEXT NOT NULL,
-            decision_source TEXT,
-            risk_level TEXT,
-            selected_groups_json TEXT,
-            reason TEXT,
-            summary_text TEXT
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_changed_files (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            file_path TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_build_priority_tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_recent_failures (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            failure_reason TEXT,
-            module_name TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_slow_tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            test_name TEXT NOT NULL,
-            estimated_runtime TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agent_high_risk_modules (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            build_run_id TEXT NOT NULL,
-            module_name TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (build_run_id) REFERENCES agent_build_runs(id)
-        )
-    """)
-
-    conn.commit()
-
-
 def save_agent_snapshot_to_db(plan: dict, summary: str | None, history: dict | None):
     conn = get_connection()
-    ensure_agent_tables(conn)
     cursor = conn.cursor()
 
     build_run_id = str(uuid4())
@@ -205,6 +133,8 @@ def save_agent_snapshot_to_db(plan: dict, summary: str | None, history: dict | N
 
 
 def main():
+    initialize_schema()
+
     plan = load_json_if_exists(PLAN_FILE)
     history = load_json_if_exists(HISTORY_FILE)
     summary = load_text_if_exists(SUMMARY_FILE)

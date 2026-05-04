@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link active" href="admin-dashboard.html">Overview</a>
+                <a class="sidebar-link" href="agent-insights.html">Agent Insights</a>
+            </nav>
+        </aside>
+
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>Admin Dashboard</h1>
+                    <p class="subtitle" id="admin-welcome">Welcome</p>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </header>
+
+            <main class="content-area single-column-layout">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Overview</h2>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>System</h3>
+                            <p>Administrative visibility</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>AI</h3>
+                            <p>Test planning insights</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>History</h3>
+                            <p>Runtime retrieval context</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Tools</h2>
+                    </div>
+                    <div class="action-buttons">
+                        <a class="nav-btn" href="agent-insights.html">Open Agent Insights</a>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const session = requireAuth("admin");
+        if (session) {
+            document.getElementById("admin-welcome").textContent =
+                `Welcome, ${session.user.username}`;
+        }
+    </script>
+</body>
+</html>

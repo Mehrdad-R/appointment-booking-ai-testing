@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Appointment Booking System</title>
+    <title>Login - Appointment Booking Platform</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container auth-page">
-        <div class="card auth-card">
-            <h1>Appointment Booking System</h1>
+    <div class="login-screen">
+        <a href="index.html" class="login-back-link">← Back to Home</a>
 
-            <form id="login-form">
+        <div class="login-panel">
+            <div class="login-panel-header">
+                <h1>Welcome back</h1>
+                <p>Sign in to access your workspace.</p>
+            </div>
+
+            <form id="login-form" class="login-form-v2">
                 <label for="username">Username</label>
                 <input type="text" id="username" placeholder="Enter username" required>
 
@@ -56,7 +62,7 @@
 
                 if (response.ok) {
                     saveSession(data.token, data.user);
-                    loginMessage.textContent = `Login successful. Redirecting as ${data.user.role}...`;
+                    loginMessage.textContent = `Login successful. Redirecting...`;
                     loginMessage.style.color = "green";
                     redirectByRole(data.user);
                 } else {

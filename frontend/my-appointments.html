@@ -4,30 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Appointments</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <header class="app-header dashboard-header">
-            <div>
-                <h1>My Appointments</h1>
-                <p class="subtitle">Manage your bookings</p>
-            </div>
-            <div class="header-actions">
-                <a class="nav-btn small-btn" href="customer-dashboard.html">Dashboard</a>
-                <a class="nav-btn small-btn" href="book-appointment.html">Book New</a>
-                <button class="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </header>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="sidebar-brand">Appointment Booking</div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link" href="customer-dashboard.html">Overview</a>
+                <a class="sidebar-link" href="book-appointment.html">Book Appointment</a>
+                <a class="sidebar-link active" href="my-appointments.html">My Appointments</a>
+            </nav>
+        </aside>
 
-        <main class="dashboard single-column">
-            <section class="card">
-                <h2>Appointments</h2>
-                <div id="appointments-list">
-                    <p class="empty-state">Loading appointments...</p>
+        <div class="content-shell">
+            <header class="topbar">
+                <div>
+                    <h1>My Appointments</h1>
+                    <p class="subtitle">Review your booking activity and manage changes</p>
                 </div>
-            </section>
-        </main>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </header>
+
+            <main class="content-area single-column-layout">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Scheduled & Upcoming</h2>
+                    </div>
+                    <div id="scheduled-appointments">
+                        <p class="empty-state">Loading appointments...</p>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Cancelled</h2>
+                    </div>
+                    <div id="cancelled-appointments">
+                        <p class="empty-state">Loading appointments...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 
     <script src="auth.js"></script>
@@ -57,20 +76,28 @@
                 const appointments = await response.json();
 
                 if (!response.ok) {
-                    document.getElementById("appointments-list").innerHTML =
+                    document.getElementById("scheduled-appointments").innerHTML =
+                        `<p class="empty-state">Could not load appointments.</p>`;
+                    document.getElementById("cancelled-appointments").innerHTML =
                         `<p class="empty-state">Could not load appointments.</p>`;
                     return;
                 }
 
-                renderAppointments(appointments);
+                const scheduled = appointments.filter(a => a.status !== "cancelled");
+                const cancelled = appointments.filter(a => a.status === "cancelled");
+
+                renderAppointments("scheduled-appointments", scheduled, false);
+                renderAppointments("cancelled-appointments", cancelled, true);
             } catch (error) {
-                document.getElementById("appointments-list").innerHTML =
+                document.getElementById("scheduled-appointments").innerHTML =
+                    `<p class="empty-state">Backend connection failed.</p>`;
+                document.getElementById("cancelled-appointments").innerHTML =
                     `<p class="empty-state">Backend connection failed.</p>`;
             }
         }
 
-        function renderAppointments(appointments) {
-            const container = document.getElementById("appointments-list");
+        function renderAppointments(containerId, appointments, isCancelledSection) {
+            const container = document.getElementById(containerId);
 
             if (appointments.length === 0) {
                 container.innerHTML = `<p class="empty-state">No appointments found.</p>`;
@@ -78,24 +105,31 @@
             }
 
             container.innerHTML = appointments.map(appt => `
-                <div class="appointment-card">
-                    <h3>${appt.title}</h3>
-                    <p><strong>Start:</strong> ${formatDateTime(appt.start)}</p>
-                    <p><strong>End:</strong> ${formatDateTime(appt.end)}</p>
-                    <p><strong>Status:</strong> <span class="status-badge">${appt.status}</span></p>
+                <div class="appointment-card appointment-card-enhanced">
+                    <div class="appointment-card-top">
+                        <div>
+                            <h3>${appt.title}</h3>
+                            <p class="appointment-meta"><strong>Start:</strong> ${formatDateTime(appt.start)}</p>
+                            <p class="appointment-meta"><strong>End:</strong> ${formatDateTime(appt.end)}</p>
+                        </div>
+                        <div>
+                            <span class="status-badge">${appt.status}</span>
+                        </div>
+                    </div>
 
                     <div class="appointment-actions">
-                        ${appt.status !== "cancelled"
-                            ? `
-                                <button class="cancel-btn" onclick="cancelAppointment('${appt.id}')">Cancel</button>
-                                <button class="reschedule-btn" onclick="openRescheduleForm('${appt.id}')">Reschedule</button>
-                              `
-                            : `<span class="cancelled-label">Already Cancelled</span>`
+                        ${
+                            !isCancelledSection
+                                ? `
+                                    <button class="cancel-btn" onclick="cancelAppointment('${appt.id}')">Cancel</button>
+                                    <button class="reschedule-btn" onclick="openRescheduleForm('${appt.id}')">Reschedule</button>
+                                  `
+                                : `<span class="cancelled-label">Cancelled Appointment</span>`
                         }
                     </div>
 
                     ${
-                        activeRescheduleId === appt.id
+                        activeRescheduleId === appt.id && !isCancelledSection
                             ? `
                                 <div class="reschedule-form">
                                     <h4>Reschedule Appointment</h4>

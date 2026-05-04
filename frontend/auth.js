@@ -29,6 +29,8 @@ function redirectByRole(user) {
         window.location.href = "customer-dashboard.html";
     } else if (user.role === "employee") {
         window.location.href = "employee-dashboard.html";
+    } else if (user.role === "admin") {
+        window.location.href = "admin-dashboard.html";
     } else {
         window.location.href = "login.html";
     }
