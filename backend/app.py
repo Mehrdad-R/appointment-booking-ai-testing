@@ -9,6 +9,7 @@ import hashlib
 from pathlib import Path
 import json
 import os
+from datetime import datetime, timezone
 try:
     from backend.db import get_connection, initialize_schema
 except ImportError:
@@ -161,7 +162,7 @@ def save_agent_snapshot_to_db(plan: dict, summary: Optional[str], history: Optio
     cursor = conn.cursor()
 
     build_run_id = str(uuid4())
-    created_at = datetime.utcnow().isoformat()
+    created_at = datetime.now(timezone.utc).isoformat()
 
     selected_groups_json = json.dumps(plan.get("selected_groups", []))
 
@@ -414,7 +415,7 @@ def login(payload: LoginRequest):
         INSERT INTO sessions (token, user_id, created_at)
         VALUES (?, ?, ?)
         """,
-        (token, user_row["id"], datetime.utcnow().isoformat())
+        (token, user_row["id"], datetime.now(timezone.utc).isoformat())
     )
 
     conn.commit()

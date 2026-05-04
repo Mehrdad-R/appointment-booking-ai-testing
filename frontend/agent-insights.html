@@ -129,6 +129,21 @@
             `;
         }
 
+        function formatPacificTime(dateString) {
+            if (!dateString) return "Not available";
+
+            return new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Los_Angeles",
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit",
+                timeZoneName: "short"
+            }).format(new Date(dateString));
+        }
+
         function renderLastRun(meta) {
             document.getElementById("last-run-info").innerHTML = `
                 <div class="insight-summary-card">
@@ -137,11 +152,7 @@
                 </div>
                 <div class="insight-summary-card">
                     <span class="summary-label">Created At</span>
-                    <strong>${
-                        meta?.created_at
-                            ? new Date(meta.created_at).toLocaleString()
-                            : "Not available"
-                    }</strong>
+                    <strong>${formatPacificTime(meta?.created_at)}</strong>
                 </div>
             `;
         }
