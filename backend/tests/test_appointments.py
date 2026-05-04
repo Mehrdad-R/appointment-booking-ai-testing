@@ -439,14 +439,14 @@ def test_employee_can_reschedule_any_appointment():
 
 
 @pytest.mark.regression
-def test_employee_can_sync_agent_snapshot_to_db():
+def test_admin_can_sync_agent_snapshot_to_db():
     reset_backend_state()
-    employee = login("employee1", "employee123")
+    admin = login("admin1", "admin123")
     write_agent_artifacts()
 
     r = httpx.post(
-        f"{BASE_URL}/employee/agent/sync-db",
-        headers=auth_headers(employee["token"])
+        f"{BASE_URL}/admin/agent/sync-db",
+        headers=auth_headers(admin["token"])
     )
     assert r.status_code == 200
 
@@ -456,20 +456,20 @@ def test_employee_can_sync_agent_snapshot_to_db():
 
 
 @pytest.mark.regression
-def test_employee_can_view_agent_insights():
+def test_admin_can_view_agent_insights():
     reset_backend_state()
-    employee = login("employee1", "employee123")
+    admin = login("admin1", "admin123")
     write_agent_artifacts()
 
     sync_r = httpx.post(
-        f"{BASE_URL}/employee/agent/sync-db",
-        headers=auth_headers(employee["token"])
+        f"{BASE_URL}/admin/agent/sync-db",
+        headers=auth_headers(admin["token"])
     )
     assert sync_r.status_code == 200
 
     r = httpx.get(
-        f"{BASE_URL}/employee/agent/insights",
-        headers=auth_headers(employee["token"])
+        f"{BASE_URL}/admin/agent/insights",
+        headers=auth_headers(admin["token"])
     )
     assert r.status_code == 200
 
@@ -478,3 +478,15 @@ def test_employee_can_view_agent_insights():
     assert "history" in body
     assert "summary" in body
     assert body["plan"]["risk_level"] == "high"
+
+
+@pytest.mark.regression
+def test_employee_cannot_access_admin_agent_insights():
+    reset_backend_state()
+    employee = login("employee1", "employee123")
+
+    r = httpx.get(
+        f"{BASE_URL}/admin/agent/insights",
+        headers=auth_headers(employee["token"])
+    )
+    assert r.status_code == 403

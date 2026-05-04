@@ -20,7 +20,6 @@ pipeline {
                 bat '"%PYTHON_EXE%" -m venv venv'
                 bat 'venv\\Scripts\\python -m pip install --upgrade pip'
                 bat 'venv\\Scripts\\python -m pip install -r backend\\requirements.txt'
-                bat 'venv\\Scripts\\python -m pip install "psycopg[binary]"'
             }
         }
 
