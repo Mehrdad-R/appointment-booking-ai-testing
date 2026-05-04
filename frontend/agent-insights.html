@@ -42,6 +42,22 @@
 
                 <section class="panel">
                     <div class="panel-header">
+                        <h2>Last Run</h2>
+                    </div>
+                    <div id="last-run-info" class="last-run-grid">
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Build Run ID</span>
+                            <strong>Loading...</strong>
+                        </div>
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Created At</span>
+                            <strong>Loading...</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
                         <h2>Overview</h2>
                     </div>
                     <div id="insight-summary-cards" class="insight-summary-grid">
@@ -109,6 +125,23 @@
             return `
                 <div class="chip-list">
                     ${items.map(item => `<span class="info-chip">${item}</span>`).join("")}
+                </div>
+            `;
+        }
+
+        function renderLastRun(meta) {
+            document.getElementById("last-run-info").innerHTML = `
+                <div class="insight-summary-card">
+                    <span class="summary-label">Build Run ID</span>
+                    <strong>${meta?.build_run_id ?? "Not available"}</strong>
+                </div>
+                <div class="insight-summary-card">
+                    <span class="summary-label">Created At</span>
+                    <strong>${
+                        meta?.created_at
+                            ? new Date(meta.created_at).toLocaleString()
+                            : "Not available"
+                    }</strong>
                 </div>
             `;
         }
@@ -234,6 +267,16 @@
                 const data = await response.json();
 
                 if (!response.ok) {
+                    document.getElementById("last-run-info").innerHTML = `
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Build Run ID</span>
+                            <strong>Not available</strong>
+                        </div>
+                        <div class="insight-summary-card">
+                            <span class="summary-label">Created At</span>
+                            <strong>Not available</strong>
+                        </div>
+                    `;
                     document.getElementById("plan-overview").innerHTML =
                         `<p class="empty-state">Could not load agent insights.</p>`;
                     document.getElementById("priority-tests").innerHTML =
@@ -244,11 +287,22 @@
                     return;
                 }
 
+                renderLastRun(data.meta);
                 renderPlan(data.plan);
                 renderSummary(data.summary);
                 renderHistory(data.history);
 
             } catch (error) {
+                document.getElementById("last-run-info").innerHTML = `
+                    <div class="insight-summary-card">
+                        <span class="summary-label">Build Run ID</span>
+                        <strong>Not available</strong>
+                    </div>
+                    <div class="insight-summary-card">
+                        <span class="summary-label">Created At</span>
+                        <strong>Not available</strong>
+                    </div>
+                `;
                 document.getElementById("plan-overview").innerHTML =
                     `<p class="empty-state">Backend connection failed.</p>`;
                 document.getElementById("priority-tests").innerHTML =

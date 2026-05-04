@@ -355,6 +355,10 @@ def get_latest_agent_snapshot_from_db():
     }
 
     return {
+        "meta": {
+            "build_run_id": build_row["id"],
+            "created_at": build_row["created_at"]
+        },
         "plan": plan,
         "history": history,
         "summary": build_row["summary_text"]
@@ -723,43 +727,6 @@ def reschedule_appointment_as_employee(
 
     return Appointment(**dict(updated_row))
 
-@app.get("/employee/agent/insights")
-def get_agent_insights(request: Request):
-    user = get_current_user(request.headers.get("Authorization"))
-    require_role(user, ["employee"])
-
-    db_snapshot = get_latest_agent_snapshot_from_db()
-    if db_snapshot is not None:
-        return db_snapshot
-
-    plan = load_json_if_exists(AGENT_PLAN_FILE)
-    history = load_json_if_exists(AGENT_HISTORY_FILE)
-    summary = load_text_if_exists(AGENT_SUMMARY_FILE)
-
-    return {
-        "plan": plan,
-        "history": history,
-        "summary": summary
-    }
-
-@app.post("/employee/agent/sync-db")
-def sync_agent_files_to_db(request: Request):
-    user = get_current_user(request.headers.get("Authorization"))
-    require_role(user, ["employee"])
-
-    plan = load_json_if_exists(AGENT_PLAN_FILE)
-    history = load_json_if_exists(AGENT_HISTORY_FILE)
-    summary = load_text_if_exists(AGENT_SUMMARY_FILE)
-
-    if plan is None:
-        raise HTTPException(status_code=404, detail="agent test plan file not found")
-
-    build_run_id = save_agent_snapshot_to_db(plan, summary, history)
-
-    return {
-        "message": "agent snapshot saved to database",
-        "build_run_id": build_run_id
-    }
 
 @app.get("/admin/agent/insights")
 def get_admin_agent_insights(request: Request):
@@ -775,6 +742,10 @@ def get_admin_agent_insights(request: Request):
     summary = load_text_if_exists(AGENT_SUMMARY_FILE)
 
     return {
+        "meta": {
+            "build_run_id": None,
+            "created_at": None
+        },
         "plan": plan,
         "history": history,
         "summary": summary

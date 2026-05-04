@@ -2156,3 +2156,15 @@ button,
         align-items: flex-start;
     }
 }
+
+.last-run-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .last-run-grid {
+        grid-template-columns: 1fr;
+    }
+}
