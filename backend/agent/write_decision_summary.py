@@ -1,70 +1,52 @@
 import json
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+AGENT_DIR = PROJECT_ROOT / "backend" / "agent"
 
-BASE_DIR = Path(__file__).resolve().parent
-TEST_PLAN_FILE = BASE_DIR / "test_plan.json"
-OUTPUT_FILE = BASE_DIR / "agent_decision_summary.md"
-
-
-def load_test_plan():
-    with open(TEST_PLAN_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+PLAN_FILE = AGENT_DIR / "test_plan.json"
+SUMMARY_FILE = AGENT_DIR / "agent_decision_summary.md"
 
 
-def write_summary(plan):
+def main():
+    if not PLAN_FILE.exists():
+        raise FileNotFoundError("test_plan.json not found")
+
+    plan = json.loads(PLAN_FILE.read_text(encoding="utf-8"))
+
+    decision_source = plan.get("decision_source", "unknown")
+    risk_level = plan.get("risk_level", "unknown")
+    selected_groups = ", ".join(plan.get("selected_groups", [])) or "None"
+    changed_files = ", ".join(plan.get("changed_files", [])) or "None"
+    priority_tests = plan.get("priority_tests", [])
+    reason = plan.get("reason", "No reasoning available.")
+
+    priority_tests_md = "\n".join(f"- {test}" for test in priority_tests) if priority_tests else "- None"
+
     summary = f"""# AI Agent Decision Summary
 
 ## Decision Source
-{plan.get("decision_source", "unknown")}
+{decision_source}
 
 ## Risk Level
-{plan.get("risk_level", "unknown")}
+{risk_level}
 
 ## Selected Test Groups
-{", ".join(plan.get("selected_groups", [])) or "None"}
+{selected_groups}
+
+## Changed Files
+{changed_files}
 
 ## Priority Tests
-"""
-    priority_tests = plan.get("priority_tests", [])
-    if priority_tests:
-        for test_name in priority_tests:
-            summary += f"- {test_name}\n"
-    else:
-        summary += "- None\n"
+{priority_tests_md}
 
-    summary += f"""
-## Changed Files
-"""
-    changed_files = plan.get("changed_files", [])
-    if changed_files:
-        for file_name in changed_files:
-            summary += f"- {file_name}\n"
-    else:
-        summary += "- None\n"
-
-    summary += f"""
-## Filtered Files Used by Agent
-"""
-    filtered_files = plan.get("filtered_files", [])
-    if filtered_files:
-        for file_name in filtered_files:
-            summary += f"- {file_name}\n"
-    else:
-        summary += "- None\n"
-
-    summary += f"""
 ## Reasoning
-{plan.get("reason", "No reason provided.")}
+{reason}
 """
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write(summary)
-
+    SUMMARY_FILE.write_text(summary, encoding="utf-8")
     print("Generated agent_decision_summary.md successfully.")
-    print(summary)
 
 
 if __name__ == "__main__":
-    test_plan = load_test_plan()
-    write_summary(test_plan)
+    main()
