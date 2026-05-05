@@ -772,6 +772,21 @@ def sync_admin_agent_files_to_db(request: Request):
         "build_run_id": build_run_id
     }
 
+@app.delete("/admin/reset-appointments")
+def reset_appointments_as_admin(request: Request):
+    user = get_current_user(request.headers.get("Authorization"))
+    require_role(user, ["admin"])
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM appointments")
+
+    conn.commit()
+    conn.close()
+
+    return {"message": "appointments reset successfully"}
+
 @app.get("/appointments", response_model=List[Appointment])
 def list_appointments():
     conn = get_connection()

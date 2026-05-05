@@ -50,11 +50,15 @@
 
                 <section class="panel">
                     <div class="panel-header">
-                        <h2>Tools</h2>
+                        <h2>Admin Tools</h2>
                     </div>
+
                     <div class="action-buttons">
                         <a class="nav-btn" href="agent-insights.html">Open Agent Insights</a>
+                        <button class="danger-action-btn" onclick="resetAppointments()">Reset Appointments</button>
                     </div>
+
+                    <div id="admin-action-message" class="message-box"></div>
                 </section>
             </main>
         </div>
@@ -63,9 +67,42 @@
     <script src="auth.js"></script>
     <script>
         const session = requireAuth("admin");
+
         if (session) {
             document.getElementById("admin-welcome").textContent =
                 `Welcome, ${session.user.username}`;
+        }
+
+        async function resetAppointments() {
+            const confirmed = confirm(
+                "This will clear all appointments. Continue?"
+            );
+
+            if (!confirmed) return;
+
+            const messageBox = document.getElementById("admin-action-message");
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/reset-appointments`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${session.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageBox.textContent = "Appointments reset successfully.";
+                    messageBox.style.color = "green";
+                } else {
+                    messageBox.textContent = `Error: ${data.detail ?? "Could not reset appointments."}`;
+                    messageBox.style.color = "red";
+                }
+            } catch (error) {
+                messageBox.textContent = "Error: Could not connect to backend.";
+                messageBox.style.color = "red";
+            }
         }
     </script>
 </body>
